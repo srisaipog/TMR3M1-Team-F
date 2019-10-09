@@ -9,14 +9,23 @@ void setup()
   kebab.PrizmBegin();
 }
 
+int k = 0;
+
 void loop()
 {
 
-  kebab.setRedLED(HIGH);
-  delay(150);
-  kebab.setRedLED(LOW);
-  kebab.setGreenLED(HIGH);
-  delay(150);
-  kebab.setGreenLED(LOW);
+  for (int i = 0; i < 100; i++)
+  {
+      kebab.setMotorPower(2, i);
+  }
+
+  delay(1000);
   
+  for (int j = 100; j > 0; j--)
+  {
+    kebab.setMotorPower(2, j);
+  }
+
+  // kebab.setMotorPower(2, 100);
+
 }
