@@ -29,7 +29,7 @@ void loop()
 
   // Party
   robo.setMotorPowers(25, -25);
-  delay(delTime * 3);
+  delay(delTime * 3
 
   robo.setMotorPowers(-50, 50);
   delay(delTime * 4);
@@ -42,5 +42,6 @@ void loop()
 
   robo.setMotorPowers(100, 0);
   delay(delTime * 2)
-  
+
+  // Add light sequence for fun
 }
