@@ -7,7 +7,7 @@ PRIZM man;
 int turns[2]= {35, -35};
 int turnTime = 500;
 int slowSpeed = 50;
-int dis, disRight, disLeft;
+int dis, disRight, disLeft ;
 
 
 void setup()
