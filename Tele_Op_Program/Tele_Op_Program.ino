@@ -1,57 +1,99 @@
+/* Example Sketch demonstrating how to control two TETRIX PRIME DC motors using a SONY PS4 gaming controller.
+ * Motor Channel 1 is controlled by PS4 Left Joystick Y axis
+ * Motor Channel 2 is controlled by PS4 Right Joystick Y axis
+ * Hardware: TETRIX PULSE, TeleOp module and SONY PS4 gaming controller.
+ * Date: 09/26/2018
+ * Author: PWU
+ */
 
-// Tele_Op_Program
-// Using PS4 Controller
 
-// Sridhar Sairam
 
-// October 2019
+#include <TELEOP.h>   // TETRIX TeleOp module Library
+#include <PULSE.h>    // TETRIX PULSE Library
 
-#include <PRIZM.h>
-#include <TELEOP.h>
-#include <PULSE.h>
+PULSE pulse;          // Create an instance within the PULSE Library class named pulse
+PS4 ps4;              // Create an instance within the PS4 Library class named ps4
 
-PRIZM prizm;
-PS4 ps4;
-// PULSE pulse;
+int leftX, leftY, rightX, rightY;
+int touchX, touchY;
+bool stickTime = true;
+bool triggerTime = false;
 
-// Analog sticks
-int left_y, left_x, right_y, right_x;
-
-// Buttons
-bool left, right, down, up, x, y, a, b;
-
+//
 
 void setup()
 {
-  ps4.getPS4();
-  Serial.begin(9600);
-}
 
+  pulse.PulseBegin();            // Intializes the PULSE controller and waits here for press of green start button
+
+  Serial.begin(115200);
+}
 
 void loop()
 {
-  getMotors();
+
+  ps4.getPS4();                             
+
+  if(ps4.Connected)
+  {                    
+
+      if (stickTime)
+      {
+        leftX = ps4.Motor(LX); 
+        leftY = ps4.Motor(LY);
+        rightX = ps4.Motor(RX);
+        rightY = ps4.Motor(RY);
+        
+        pulse.setMotorPowers(leftY, rightY);
+      }
+
+      if (triggerTime)
+      {
+        // leftX = ps4.Button(LX); 
+        leftY = ps4.Button(L2T);
+        // rightX = ps4.Button(RX);
+        rightY = ps4.Button(R2T);
+        
+        pulse.setMotorPowers(leftY, rightY);
+      }
+
+      if (ps4.buttons_2 == 7)
+      {
+        if (stickTime)
+        {
+          stickTime = false;
+          triggerTime = true;
+        }
+        else if (triggerTime)
+        {
+          stickTime = true;
+          triggerTime = false;
+        }
+      }
+      
+      
+      byte group1 = ps4.buttons_1;
+      byte group2 = ps4.buttons_2;
+
+      Serial.println(ps4.buttons_1, BIN);
+      
+
+      touchX = ps4.Touchpad(TOUCHX);
+      touchY = ps4.Touchpad(TOUCHY);
+
+      touchX = map(touchX, 0, 100, 0, 180);
+      touchY = map(touchY, 0, 100, 0, 180);
+
+      pulse.setMotorDegree(1, 690, touchX);
+
+      
+       
+  }
+  else{                                         // If PS4 is not connected, stop motors
+      pulse.setMotorPowers(0,0);
+  }
+
   
-  // left_y = map(left_y, 0, 255, -00, 100);
-  // left_x = map(left_x, 0, 255, -100, 100);
 
-  Serial.write(left_x);
-  Serial.write(left_y);
-  //Serial.write("");
-  delay(500);
-  
-
-  // prizm.setMotorSpeeds(left_);
-  
-}
-
-void getMotors()
-{
-  ps4.getPS4();
-  left_y = ps4.Stick(LY);
-  left_x = ps4.Stick(LX);
-
-  right_y = ps4.Stick(RY);
-  right_x = ps4.Stick(RX);
   
 }
