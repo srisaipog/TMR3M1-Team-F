@@ -1,12 +1,6 @@
-/* Example Sketch demonstrating how to control two TETRIX PRIME DC motors using a SONY PS4 gaming controller.
- * Motor Channel 1 is controlled by PS4 Left Joystick Y axis
- * Motor Channel 2 is controlled by PS4 Right Joystick Y axis
- * Hardware: TETRIX PULSE, TeleOp module and SONY PS4 gaming controller.
- * Date: 09/26/2018
- * Author: PWU
- */
-
-
+// Sridhar Sairam
+// Tele-Op Program
+// October 2019
 
 #include <TELEOP.h>   // TETRIX TeleOp module Library
 #include <PULSE.h>    // TETRIX PULSE Library
@@ -19,12 +13,10 @@ int touchX, touchY;
 bool stickTime = true;
 bool triggerTime = false;
 
-//
-
 void setup()
 {
 
-  pulse.PulseBegin();            // Intializes the PULSE controller and waits here for press of green start button
+  pulse.PulseBegin();
 
   Serial.begin(115200);
 }
@@ -36,7 +28,6 @@ void loop()
 
   if(ps4.Connected)
   {                    
-
       if (stickTime)
       {
         leftX = ps4.Motor(LX); 
@@ -57,7 +48,16 @@ void loop()
         pulse.setMotorPowers(leftY, rightY);
       }
 
-      if (ps4.buttons_2 == 7)
+    
+    
+    
+    
+      byte group1 = ps4.buttons_1;
+      byte group2 = ps4.buttons_2;
+
+      Serial.println(ps4.buttons_1, BIN);
+    
+      if (ps4.buttons_2 == 7) // Fix This
       {
         if (stickTime)
         {
@@ -70,12 +70,6 @@ void loop()
           triggerTime = false;
         }
       }
-      
-      
-      byte group1 = ps4.buttons_1;
-      byte group2 = ps4.buttons_2;
-
-      Serial.println(ps4.buttons_1, BIN);
       
 
       touchX = ps4.Touchpad(TOUCHX);
