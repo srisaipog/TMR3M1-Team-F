@@ -10,12 +10,12 @@ PS4 ps4;              // Create an instance within the PS4 Library class named p
 
 int leftX, leftY, rightX, rightY;
 int touchX, touchY;
-bool stickTime = true;
-bool triggerTime = false;
+int mode = 0;
+int distance;
+bool line = false;
 
 void setup()
 {
-
   pulse.PulseBegin();
 
   Serial.begin(115200);
@@ -26,65 +26,127 @@ void loop()
 
   ps4.getPS4();                             
 
-  if(ps4.Connected)
-  {                    
-      if (stickTime)
+  if (ps4.Connected)
+  {           
+
+      // DC Motors
+      if (mode == 0)
       {
+        // Up/down for joysticks
+        
         leftX = ps4.Motor(LX); 
         leftY = ps4.Motor(LY);
         rightX = ps4.Motor(RX);
         rightY = ps4.Motor(RY);
-        
-        pulse.setMotorPowers(leftY, rightY);
       }
-
-      if (triggerTime)
+      else if (mode == 1)
       {
-        // leftX = ps4.Button(LX); 
-        leftY = ps4.Button(L2T);
-        // rightX = ps4.Button(RX);
-        rightY = ps4.Button(R2T);
-        
-        pulse.setMotorPowers(leftY, rightY);
-      }
-
-    
-    
-    
-    
-      byte group1 = ps4.buttons_1;
-      byte group2 = ps4.buttons_2;
-
-      Serial.println(ps4.buttons_1, BIN);
-    
-      if (ps4.buttons_2 == 7) // Fix This
-      {
-        if (stickTime)
-        {
-          stickTime = false;
-          triggerTime = true;
-        }
-        else if (triggerTime)
-        {
-          stickTime = true;
-          triggerTime = false;
-        }
+        // Left Joystick determines direction
+        leftX = ps4.Servo(LY)
       }
       
 
-      touchX = ps4.Touchpad(TOUCHX);
-      touchY = ps4.Touchpad(TOUCHY);
+      // Servo Motors
+      if (mode == 0)
+      {
+        touchX = ps4.Touchpad(TOUCHX);
+        touchY = ps4.Touchpad(TOUCHY);
+  
+        touchX = map(touchX, 0, 100, 0, 180);
+        touchY = map(touchY, 0, 100, 0, 180);
+      }
+      else if (mode == 1)
+      {
+        // Right Joystick determines servo
+        
+        touchX = ps4.Servo(RY);
+      }
 
-      touchX = map(touchX, 0, 100, 0, 180);
-      touchY = map(touchY, 0, 100, 0, 180);
+      distance = pulse.readSonicSensorCM(3);
+      if (distance <= 15)
+      {
+        if (!(leftY <= 0 && rightY <= 0))
+        {
+          leftY = 0;
+          rightY = 0;
+        }
+        ps4.setLED(RED);
+      }
+      else if (distance <= 30)
+      {
+        ps4.setLED(YELLOW);
+      }
+      else
+      {
+        ps4.setLED(GREEN);
+      }
 
+
+
+      if ((ps4.Button(L2) || ps4.Button(R2)) || (ps4.Button(L1) || ps4.Button(R1)))
+      {
+        line = true;
+      }
+      else
+      {
+        line = false;
+      }
+
+
+      if (line)
+      {
+        if (pulse.readLineSensor(3) == HIGH)
+        {
+          rightY = 30;
+          leftY = 30;
+          ps4.setLED(GREEN);
+        }
+        else if (pulse.readLineSensor(3) == LOW)
+        {
+          ps4.setLED(RED);
+
+          for (int i = 0; i < 1; i --)
+          {
+            ps4.getPS4();
+            if (pulse.readLineSensor(3) == LOW)
+            {
+              pulse.setMotorPowers(-20, 20);
+              delay(100 * i)
+            }
+            ps4.getPS4();
+            if (pulse.readLineSensor(3) == LOW)
+            {
+              ps4.getPS4();
+              pulse.setMotorPowers(-20, 20);
+              delay(100 * i * 2)
+            }
+            else
+            {
+              break;
+            }
+          }
+        }
+      }
+      
+      
       pulse.setMotorDegree(1, 690, touchX);
-
-      
+      pulse.setMotorPowers(leftY, rightY);
+      // ps4.setLED(GREEN); // RED, BLUE, YELLOW, GREEN, OFF
        
   }
-  else{                                         // If PS4 is not connected, stop motors
-      pulse.setMotorPowers(0,0);
+  
+  else
+  {
+    pulse.setMotorPowers(0,0);
+    for (int j = 0; j < 5; j ++)
+    {
+      ps4.setLED(RED);
+      pulse.setRedLED(HIGH);
+      delay(50);
+      ps4.setLED(OFF);
+      pulse.setRedLED(LOW);
+      delay(50);
+    }
   }
 
   
