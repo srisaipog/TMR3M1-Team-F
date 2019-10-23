@@ -39,9 +39,11 @@ void loop()
   {
     lineMode();
   }
-  
-  pulse.setMotorDegree(servoInput, 690, servo);
-  pulse.setMotorPowers(leftSpeed, rightSpeed);   
+  else
+  {
+    pulse.setMotorDegree(servoInput, 690, servo);
+    pulse.setMotorPowers(leftSpeed, rightSpeed);   
+  }
 }
 
 
