@@ -2,9 +2,6 @@
 // Tele-Op Program
 // October 2019
 
-// Fix: Line sensor and servo motor
-
-
 #include <TELEOP.h>   // TETRIX TeleOp module Library
 #include <PULSE.h>    // TETRIX PULSE Library
 
@@ -67,7 +64,7 @@ void ultraSonicSensing()
     
     ps4.setLED(RED);
   }
-  else if (distance <= 30)
+  else if (distance <= 40)
   {
     ps4.setLED(YELLOW);
   }
@@ -93,7 +90,19 @@ void motorMoving()
   // Servo Motors
   // Touchpad X-Axis
   servo = ps4.Touchpad(TOUCHX);
-  servo = map(servo, 0, 100, 0, 180);
+  // servo = map(servo, 0, 100, 0, 180);
+
+  ps4.getPS4();
+
+  if (ps4.Button(RIGHT) || ps4.Button(UP))
+  {
+    servo ++;
+  }
+  if (ps4.Button(LEFT) }} ps4.Button(DOWN))
+  {
+    servo --;
+  }
+  
 }
 
 
@@ -115,47 +124,74 @@ void lineMode()
 {
   ps4.getPS4();
   if (pulse.readLineSensor(lineInput) == HIGH)
-    {
-      leftSpeed = 30;
-      rightSpeed = 30;
-      ps4.setLED(GREEN);
-    }
-    else if (pulse.readLineSensor(lineInput) == LOW)
-    {
-      ps4.setLED(RED);
+  {
+    leftSpeed = 30;
+    rightSpeed = 30;
+    ps4.setLED(GREEN);
+  }
+  else if (pulse.readLineSensor(lineInput) == LOW)
+  {
+    ps4.setLED(RED);
 
-      for (int i = 0; i < 1; i --)
+    ps4.getPS4();
+    for (int i = 0; i < 1; i --)
+    {
+      checkLineMode();
+      if (line == false)
       {
+        break;
+      }
+
+      ps4.getPS4();
+      if (pulse.readLineSensor(lineInput) == LOW)
+      {
+        pulse.setMotorPowers(-20, 20);
+        
         checkLineMode();
         if (line == false)
         {
           break;
         }
-        ps4.getPS4();
-        if (pulse.readLineSensor(lineInput) == LOW)
+        
+        delay(100 * i);
+
+        checkLineMode();
+        if (line == false)
         {
-          pulse.setMotorPowers(-20, 20);
-          delay(100 * i);
-          
-          ps4.getPS4();
-          if (pulse.readLineSensor(lineInput) == HIGH)
-          {
-            break;
-          }
-
-
-          pulse.setMotorPowers(-20, 20);
-          delay(100 * i * 2);
-          
-          ps4.getPS4();
-          if (pulse.readLineSensor(lineInput) == HIGH)
-          {
-            break;
-          }
+          break;
         }
-          
-       }
-    }
+        
+        ps4.getPS4();
+        if (pulse.readLineSensor(lineInput) == HIGH)
+        {
+          break;
+        }
+
+        pulse.setMotorPowers(-20, 20);
+
+        checkLineMode();
+        if (line == false)
+        {
+          break;
+        }
+        
+        delay(100 * i * 2);
+
+        checkLineMode();
+        if (line == false)
+        {
+          break;
+        }
+        
+        ps4.getPS4();
+        if (pulse.readLineSensor(lineInput) == HIGH)
+        {
+          break;
+        }
+      }
+        
+     }
+  }
 }
 
 void checkPS4Connection()
