@@ -52,7 +52,7 @@ void ultraSonicSensing()
   // Makes sure Robot is not to close to object
   ps4.getPS4();
   
-  distance = pulse.readSonicSensorCM(3);
+  distance = pulse.readSonicSensorCM(sonicInput);
   
   if (distance <= 15)
   {
