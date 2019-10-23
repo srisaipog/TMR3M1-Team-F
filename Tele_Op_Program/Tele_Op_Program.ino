@@ -2,154 +2,173 @@
 // Tele-Op Program
 // October 2019
 
+// Fix: Line sensor and servo motor
+
+
 #include <TELEOP.h>   // TETRIX TeleOp module Library
 #include <PULSE.h>    // TETRIX PULSE Library
 
 PULSE pulse;          // Create an instance within the PULSE Library class named pulse
 PS4 ps4;              // Create an instance within the PS4 Library class named ps4
 
-int leftX, leftY, rightX, rightY;
-int touchX, touchY;
-int mode = 0;
+int leftSpeed, rightSpeed;
+int servo;
 int distance;
 bool line = false;
+
+int lineInput = 3;
+int sonicInput = 3;
+int servoInput = 0;
 
 void setup()
 {
   pulse.PulseBegin();
-
-  Serial.begin(115200);
 }
 
 void loop()
 {
+  checkPS4Connection();
 
-  ps4.getPS4();                             
+  motorMoving();
 
-  if (ps4.Connected)
-  {           
+  ultraSonicSensing();
 
-      // DC Motors
-      if (mode == 0)
-      {
-        // Up/down for joysticks
-        
-        leftX = ps4.Motor(LX); 
-        leftY = ps4.Motor(LY);
-        rightX = ps4.Motor(RX);
-        rightY = ps4.Motor(RY);
-      }
-      else if (mode == 1)
-      {
-        // Left Joystick determines direction
-        leftX = ps4.Servo(LY)
-      }
-      
+  checkLineMode();
 
-      // Servo Motors
-      if (mode == 0)
-      {
-        touchX = ps4.Touchpad(TOUCHX);
-        touchY = ps4.Touchpad(TOUCHY);
-  
-        touchX = map(touchX, 0, 100, 0, 180);
-        touchY = map(touchY, 0, 100, 0, 180);
-      }
-      else if (mode == 1)
-      {
-        // Right Joystick determines servo
-        
-        touchX = ps4.Servo(RY);
-      }
-
-      distance = pulse.readSonicSensorCM(3);
-      if (distance <= 15)
-      {
-        if (!(leftY <= 0 && rightY <= 0))
-        {
-          leftY = 0;
-          rightY = 0;
-        }
-        ps4.setLED(RED);
-      }
-      else if (distance <= 30)
-      {
-        ps4.setLED(YELLOW);
-      }
-      else
-      {
-        ps4.setLED(GREEN);
-      }
-
-
-
-      if ((ps4.Button(L2) || ps4.Button(R2)) || (ps4.Button(L1) || ps4.Button(R1)))
-      {
-        line = true;
-      }
-      else
-      {
-        line = false;
-      }
-
-
-      if (line)
-      {
-        if (pulse.readLineSensor(3) == HIGH)
-        {
-          rightY = 30;
-          leftY = 30;
-          ps4.setLED(GREEN);
-        }
-        else if (pulse.readLineSensor(3) == LOW)
-        {
-          ps4.setLED(RED);
-
-          for (int i = 0; i < 1; i --)
-          {
-            ps4.getPS4();
-            if (pulse.readLineSensor(3) == LOW)
-            {
-              pulse.setMotorPowers(-20, 20);
-              delay(100 * i)
-            }
-            ps4.getPS4();
-            if (pulse.readLineSensor(3) == LOW)
-            {
-              ps4.getPS4();
-              pulse.setMotorPowers(-20, 20);
-              delay(100 * i * 2)
-            }
-            else
-            {
-              break;
-            }
-          }
-        }
-      }
-      
-      
-      pulse.setMotorDegree(1, 690, touchX);
-      pulse.setMotorPowers(leftY, rightY);
-      // ps4.setLED(GREEN); // RED, BLUE, YELLOW, GREEN, OFF
-       
+  if (line)
+  {
+    lineMode();
   }
   
+  pulse.setMotorDegree(servoInput, 690, servo);
+  pulse.setMotorPowers(leftSpeed, rightSpeed);   
+}
+
+
+void ultraSonicSensing()
+{
+  // Makes sure Robot is not to close to object
+  ps4.getPS4();
+  
+  distance = pulse.readSonicSensorCM(3);
+  
+  if (distance <= 15)
+  {
+    if (leftSpeed >= 0)
+    {
+      leftSpeed = 0;
+    }
+    if (rightSpeed >= 0)
+    {
+      rightSpeed = 0;
+    }
+    
+    ps4.setLED(RED);
+  }
+  else if (distance <= 30)
+  {
+    ps4.setLED(YELLOW);
+  }
   else
   {
-    pulse.setMotorPowers(0,0);
-    for (int j = 0; j < 5; j ++)
+    ps4.setLED(GREEN);
+  }
+}
+
+
+void motorMoving()
+{
+  ps4.getPS4();                             
+      
+  // DC Motors
+  // Up/down for joysticks
+  leftSpeed = ps4.Motor(LY);
+  rightSpeed = ps4.Motor(RY);
+
+
+  ps4.getPS4();
+
+  // Servo Motors
+  // Touchpad X-Axis
+  servo = ps4.Touchpad(TOUCHX);
+  servo = map(servo, 0, 100, 0, 180);
+}
+
+
+void checkLineMode()
+{
+  ps4.getPS4();
+  if ((ps4.Button(L2) || ps4.Button(R2)) || (ps4.Button(L1) || ps4.Button(R1)))
+  {
+    line = true;
+  }
+  else
+  {
+    line = false;
+  }
+}
+
+
+void lineMode()
+{
+  ps4.getPS4();
+  if (pulse.readLineSensor(lineInput) == HIGH)
+    {
+      leftSpeed = 30;
+      rightSpeed = 30;
+      ps4.setLED(GREEN);
+    }
+    else if (pulse.readLineSensor(lineInput) == LOW)
     {
       ps4.setLED(RED);
-      pulse.setRedLED(HIGH);
-      delay(50);
-      ps4.setLED(OFF);
-      pulse.setRedLED(LOW);
-      delay(50);
+
+      for (int i = 0; i < 1; i --)
+      {
+        checkLineMode();
+        if (line == false)
+        {
+          break;
+        }
+        ps4.getPS4();
+        if (pulse.readLineSensor(lineInput) == LOW)
+        {
+          pulse.setMotorPowers(-20, 20);
+          delay(100 * i);
+          
+          ps4.getPS4();
+          if (pulse.readLineSensor(lineInput) == HIGH)
+          {
+            break;
+          }
+
+
+          pulse.setMotorPowers(-20, 20);
+          delay(100 * i * 2);
+          
+          ps4.getPS4();
+          if (pulse.readLineSensor(lineInput) == HIGH)
+          {
+            break;
+          }
+        }
+          
+       }
     }
+}
+
+void checkPS4Connection()
+{
+  ps4.getPS4();
+  
+  if(ps4.Connected == false)
+  {
+    pulse.setMotorPowers(0,0);
+    pulse.setRedLED(HIGH);
+    pulse.setGreenLED(LOW);
   }
-
-  
-
-  
+  else
+  {
+    pulse.setRedLED(LOW);
+    pulse.setGreenLED(HIGH);
+  }
 }
