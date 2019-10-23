@@ -90,8 +90,10 @@ void motorMoving()
   // Servo Motors
   // Touchpad X-Axis
   servo = ps4.Touchpad(TOUCHX);
-  // servo = map(servo, 0, 100, 0, 180);
+  servo = map(servo, 0, 1920, 0, 180);
 
+  // Touchpad Dimensions: 1920 x 900
+  
   ps4.getPS4();
 
   if (ps4.Button(RIGHT) || ps4.Button(UP))
@@ -101,6 +103,15 @@ void motorMoving()
   if (ps4.Button(LEFT) }} ps4.Button(DOWN))
   {
     servo --;
+  }
+  
+  if (servo < 0)
+  {
+    servo = 0;
+  }
+  if (servo > 180)
+  {
+    servo = 180;
   }
   
 }
