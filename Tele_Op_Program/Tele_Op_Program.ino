@@ -1,4 +1,4 @@
-// Sridhar Sairam
+ // Sridhar Sairam
 // Tele-Op Program
 // October 2019
 
@@ -15,7 +15,7 @@ bool line = false;
 
 int lineInput = 3;
 int sonicInput = 3;
-int servoInput = 0;
+int servoInput = 1;
 
 void setup()
 {
@@ -24,6 +24,7 @@ void setup()
 
 void loop()
 {
+  
   checkPS4Connection();
 
   motorMoving();
@@ -32,6 +33,8 @@ void loop()
 
   checkLineMode();
 
+  line = false;
+  
   if (line)
   {
     lineMode();
@@ -40,6 +43,25 @@ void loop()
   {
     pulse.setMotorDegree(servoInput, 690, servo);
     pulse.setMotorPowers(leftSpeed, rightSpeed);   
+  }
+  
+  // pulse.setMotorPowers(15, 15);
+}
+
+void checkPS4Connection()
+{
+  ps4.getPS4();
+  
+  if(ps4.Connected == false)
+  {
+    pulse.setMotorPowers(0,0);
+    pulse.setRedLED(HIGH);
+    pulse.setGreenLED(LOW);
+  }
+  else
+  {
+    pulse.setRedLED(LOW);
+    pulse.setGreenLED(HIGH);
   }
 }
 
@@ -51,20 +73,20 @@ void ultraSonicSensing()
   
   distance = pulse.readSonicSensorCM(sonicInput);
   
-  if (distance <= 15)
+  if (distance <= 30)
   {
-    if (leftSpeed >= 0)
+    if (leftSpeed <= 0)
     {
       leftSpeed = 0;
     }
-    if (rightSpeed >= 0)
+    if (rightSpeed <= 0)
     {
       rightSpeed = 0;
     }
     
     ps4.setLED(RED);
   }
-  else if (distance <= 40)
+  else if (distance <= 50)
   {
     ps4.setLED(YELLOW);
   }
@@ -100,7 +122,7 @@ void motorMoving()
   {
     servo ++;
   }
-  if (ps4.Button(LEFT) }} ps4.Button(DOWN))
+  if (ps4.Button(LEFT) || ps4.Button(DOWN))
   {
     servo --;
   }
@@ -202,22 +224,5 @@ void lineMode()
       }
         
      }
-  }
-}
-
-void checkPS4Connection()
-{
-  ps4.getPS4();
-  
-  if(ps4.Connected == false)
-  {
-    pulse.setMotorPowers(0,0);
-    pulse.setRedLED(HIGH);
-    pulse.setGreenLED(LOW);
-  }
-  else
-  {
-    pulse.setRedLED(LOW);
-    pulse.setGreenLED(HIGH);
   }
 }
