@@ -12,14 +12,16 @@ int leftSpeed, rightSpeed;
 int servo;
 int distance;
 bool line = false;
+bool lineFound = false;
 
-int lineInput = 3;
+int lineInput = 4;
 int sonicInput = 3;
 int servoInput = 1;
 
 void setup()
 {
   pulse.PulseBegin();
+  pulse.setServoSpeed(servoInput, 100);
 }
 
 void loop()
@@ -32,8 +34,6 @@ void loop()
   ultraSonicSensing();
 
   checkLineMode();
-
-  line = false;
   
   if (line)
   {
@@ -41,9 +41,11 @@ void loop()
   }
   else
   {
-    pulse.setMotorDegree(servoInput, 690, servo);
-    pulse.setMotorPowers(leftSpeed, rightSpeed);   
+    lineFound = false;
   }
+
+  pulse.setServoPosition(servoInput, servo);
+  pulse.setMotorPowers(leftSpeed, rightSpeed);
   
   // pulse.setMotorPowers(15, 15);
 }
@@ -111,8 +113,11 @@ void motorMoving()
 
   // Servo Motors
   // Touchpad X-Axis
-  servo = ps4.Touchpad(TOUCHX);
-  servo = map(servo, 0, 1920, 0, 180);
+  if (ps4.Button(TOUCH))
+  {
+    servo = ps4.Touchpad(TOUCHX);
+    servo = map(servo, 0, 1920, 0, 180);
+  }
 
   // Touchpad Dimensions: 1920 x 900
   
@@ -156,12 +161,31 @@ void checkLineMode()
 void lineMode()
 {
   ps4.getPS4();
-  if (pulse.readLineSensor(lineInput) == HIGH)
+  
+  if (pulse.readLineSensor(lineInput) == 1)
   {
-    leftSpeed = 30;
-    rightSpeed = 30;
-    ps4.setLED(GREEN);
+    if (lineFound == false)
+    {
+      leftSpeed = 20;
+      rightSpeed = 20;
+    }
+    
   }
+  else if(pulse.readLineSensor(lineInput) == 0)
+  {
+    leftSpeed = 0;
+    rightSpeed = 0;
+    lineFound = true;
+  }
+  else
+  {
+    leftSpeed = -55;
+    rightSpeed = 55;
+  }
+
+  ps4.setLED(BLUE);
+  
+  /*
   else if (pulse.readLineSensor(lineInput) == LOW)
   {
     ps4.setLED(RED);
@@ -225,4 +249,5 @@ void lineMode()
         
      }
   }
+  */
 }
