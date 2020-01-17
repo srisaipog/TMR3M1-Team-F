@@ -18,7 +18,6 @@ int PowerM1;          // Channel 1 Motor Power
 int PowerM2;          // Channel 2 Motor Power
 int degree;
 
-
 // prizm.setMotorInvert(1, 1);
 // prizm.setMotorInvert(2, 1);
 
@@ -28,7 +27,9 @@ void setup() {
   // ps4.setDeadZone (LEFT,10);     // Sets a Left Joystick Dead Zone axis range of +/- 10 about center stick
   // ps4.setDeadZone(RIGHT,10);     // Sets a Right Joystick Dead Zone axis range of +/- 10 about center stick
 
-  prizm.setServoSpeed(1, 75);
+  prizm.setServoSpeed(2,100);
+  prizm.setServoSpeed(1,100);
+  //Serial.begin(9600);
 
 }
 
@@ -43,11 +44,29 @@ void loop() {
       
       degree = ps4.Touchpad(TOUCHX);
 
-      degree = map(degree, 20, 1900, 0, 180);
+      // Serial.print(degree);
+      // Serial.print("/n");
+      
+
+      if (degree < 20)
+      {
+        degree = 0;
+      }
+      else if (degree > 1900)
+      {
+        degree = 180;
+      }
+      else
+      {
+        degree = map(degree,
+                     0,
+                     1920,
+                     0,
+                     180);
+      }
 
       prizm.setServoPosition(1, degree);
-      
-      // prizm.setServoPosition(2, degree);
+      prizm.setServoPosition(2, degree);
       
 
 
